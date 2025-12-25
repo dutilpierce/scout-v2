@@ -1,0 +1,16 @@
+# Node
+node_modules/
+npm-debug.log*
+
+# Plasmo / Parcel
+.plasmo/
+.cache/
+build/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Env files
+.env
+.env.local

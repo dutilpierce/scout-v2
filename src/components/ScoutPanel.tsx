@@ -1,153 +1,91 @@
 // src/components/ScoutPanel.tsx
+import React, { useState } from "react"
 
-import React, { useMemo, useState } from "react"
-import type { Tool } from "../data/tools"
-
-type ActiveCard = "sponsored" | "free" | "trial"
-
-type ScoutPanelProps = {
-  query: string
-  sponsoredTool: Tool | null
-  freeTool: Tool | null
-  trialTool: Tool | null
-  loading: boolean
-  error?: string | null
-  onClose: () => void
-}
-
-type ToolCardProps = {
-  slot: ActiveCard
-  tool: Tool | null
-  expanded: boolean
-  onToggle: () => void
-  allowMiniPreview?: boolean
-}
-
-function ToolCard({ slot, tool, expanded, onToggle, allowMiniPreview }: ToolCardProps) {
-  const title =
-    tool?.name ??
-    (slot === "sponsored" ? "Sponsored" : slot === "free" ? "Free Option" : "Trial/Paid Option")
-
-  const tagline = tool?.tagline ?? ""
-  const rating = typeof tool?.rating === "number" ? tool!.rating : null
-
-  const url = tool?.ctaUrl ?? tool?.url ?? ""
-  const ctaLabel = tool?.ctaLabel ?? "Visit Site"
-  const badgeText =
-    tool?.badge ?? (slot === "sponsored" ? "SPONSORED" : slot === "free" ? "FREE" : "TRIAL")
-
-  const miniPreviewText = useMemo(() => {
-    if (!tool) return ""
-    if (!tool.miniPreview) return tool.tagline || ""
-    return tool.miniPreview
-  }, [tool])
-
-  const scoutSaysText = tool?.scoutSays ?? ""
-
+function ToolCard({ slot, tool, expanded, onToggle, allowMiniPreview }: any) {
+  if (!tool) return null
+  
   return (
-    <div className={`scout-card ${expanded ? "is-expanded" : "is-collapsed"} scout-${slot}`}>
-      <div className="scout-card-top">
-        <div className="scout-card-heading">
-          <div className="scout-title-row">
-            <div className="scout-title">{title}</div>
-            <div className="scout-badges">
-              <span className={`scout-badge ${slot}`}>{badgeText}</span>
-              {rating !== null && <span className="scout-rating">★ {rating.toFixed(1)}</span>}
-            </div>
-          </div>
-
-          {tagline ? <div className="scout-tagline">{tagline}</div> : null}
-        </div>
-
-        <button className="scout-toggle" onClick={onToggle} type="button">
-          {expanded ? "Shrink" : "Expand"}
-        </button>
+    <div className={`scout-card scout-${slot} ${expanded ? "is-expanded" : "is-collapsed"}`}>
+      <div className="scout-title-row">
+        <h3 className="scout-title">{tool.name}</h3>
       </div>
 
-      {/* Sponsored mini-preview ONLY when collapsed */}
-      {!expanded && allowMiniPreview && miniPreviewText ? (
-        <div className="scout-mini-preview line-clamp-2">{miniPreviewText}</div>
-      ) : null}
+      <div className="scout-badge-row">
+        <span className={`scout-badge ${slot}`}>{tool.badge || slot.toUpperCase()}</span>
+        {tool.rating && <span className="scout-rating">★ {tool.rating.toFixed(1)}</span>}
+      </div>
 
-      {/* Expanded body */}
-      {expanded ? (
-        <div className="scout-card-body">
-          {url ? (
-            <a className="scout-cta" href={url} target="_blank" rel="noreferrer">
-              {ctaLabel} <span className="scout-ext">↗</span>
-            </a>
-          ) : null}
+      <p className="scout-tagline" style={{margin: '0 0 8px 0', fontSize: '14px', color: '#475569'}}>{tool.tagline}</p>
 
-          {/* Scout Says ONLY in expanded state */}
-          {scoutSaysText ? (
-            <div className="scout-says">
-              <div className="scout-says-title">Scout Says:</div>
-              <div className="scout-says-text">{scoutSaysText}</div>
-            </div>
-          ) : null}
+      {/* FIXED TOGGLE LOGIC: Now properly collapses */}
+      <button className="scout-toggle" onClick={onToggle} type="button">
+        {expanded ? "Show Less" : "Details"}
+      </button>
+
+      {!expanded && allowMiniPreview && (
+        <div className="scout-mini-preview" style={{fontSize: '13px', marginTop: '10px', background: 'rgba(0,0,0,0.03)', padding: '8px', borderRadius: '8px'}}>
+          {tool.miniPreview || tool.tagline}
         </div>
-      ) : null}
+      )}
+
+      {expanded && (
+        <div className="scout-card-body">
+          <a className="scout-cta" href={tool.url} target="_blank" rel="noreferrer">
+            {tool.ctaLabel || "Open Tool"}
+          </a>
+          {tool.scoutSays && (
+            <div className="scout-says">
+              <div className="scout-says-title">Scout Says</div>
+              <div className="scout-says-text">"{tool.scoutSays}"</div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }
 
-export function ScoutPanel({
-  query,
-  sponsoredTool,
-  freeTool,
-  trialTool,
-  loading,
-  error,
-  onClose
-}: ScoutPanelProps) {
-  // Default open card: Free
-  const [activeCard, setActiveCard] = useState<ActiveCard>("free")
+export function ScoutPanel({ sponsoredTool, freeTool, trialTool, loading, onClose }: any) {
+  const [activeCard, setActiveCard] = useState<string | null>("free")
+
+  const handleToggle = (clicked: string) => {
+    // If clicking the same card, collapse it. Otherwise, expand the new one.
+    setActiveCard(activeCard === clicked ? null : clicked)
+  }
 
   return (
     <div className="scout-panel">
-      {/* Fixed header */}
       <div className="scout-header">
         <div className="scout-header-left">
-          <div className="scout-logo" aria-hidden="true" />
-          <div className="scout-h-title">Scout</div>
+          <div className="scout-logo"></div>
+          <h2 className="scout-h-title">Scout</h2>
         </div>
-
-        <button className="scout-close" onClick={onClose} type="button" aria-label="Close Scout">
-          ×
-        </button>
+        <button className="scout-close" onClick={onClose} aria-label="Close">×</button>
       </div>
 
-      {/* Scrollable body */}
       <div className="scout-body">
-        {loading ? (
-          <div className="scout-status">Finding the best options for {query ? `"${query}"` : "you"}…</div>
-        ) : null}
+        {loading && <div style={{textAlign: 'center', padding: '20px', color: '#64748b'}}>Finding options...</div>}
 
-        {error ? <div className="scout-error">{error}</div> : null}
-
-        {/* 1) Sponsored (top) - collapsed by default; mini-preview allowed when collapsed */}
-        <ToolCard
-          slot="sponsored"
-          tool={sponsoredTool}
-          expanded={activeCard === "sponsored"}
-          onToggle={() => setActiveCard((cur) => (cur === "sponsored" ? "free" : "sponsored"))}
-          allowMiniPreview={true}
+        <ToolCard 
+          slot="sponsored" 
+          tool={sponsoredTool} 
+          expanded={activeCard === "sponsored"} 
+          onToggle={() => handleToggle("sponsored")} 
+          allowMiniPreview 
         />
-
-        {/* 2) Free (middle) - expanded by default */}
-        <ToolCard
-          slot="free"
-          tool={freeTool}
-          expanded={activeCard === "free"}
-          onToggle={() => setActiveCard((cur) => (cur === "free" ? "trial" : "free"))}
+        
+        <ToolCard 
+          slot="free" 
+          tool={freeTool} 
+          expanded={activeCard === "free"} 
+          onToggle={() => handleToggle("free")} 
         />
-
-        {/* 3) Trial/Paid (bottom) - collapsed by default */}
-        <ToolCard
-          slot="trial"
-          tool={trialTool}
-          expanded={activeCard === "trial"}
-          onToggle={() => setActiveCard((cur) => (cur === "trial" ? "free" : "trial"))}
+        
+        <ToolCard 
+          slot="trial" 
+          tool={trialTool} 
+          expanded={activeCard === "trial"} 
+          onToggle={() => handleToggle("trial")} 
         />
       </div>
     </div>

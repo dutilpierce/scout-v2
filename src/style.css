@@ -1,319 +1,146 @@
 /* src/style.css */
 
-/* =============== */
-/* Host-page isolation (critical) */
-/* =============== */
-
-.scout-launcher {
-  position: fixed;
-  top: 72px;
-  right: 18px;
-  z-index: 2147483647;
+.scout-outer-wrapper {
+  position: fixed !important;
+  top: 80px !important;
+  right: 24px !important;
+  z-index: 2147483647 !important;
+  width: 340px !important;
+  font-family: 'Inter', -apple-system, system-ui, sans-serif !important;
+  color: #1e293b !important;
 }
-
-.scout-launcher-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 10px;
-  border-radius: 9999px;
-  border: 1px solid rgba(15, 23, 42, 0.12);
-  background: #ffffff;
-  color: #0f172a;
-  cursor: pointer;
-  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
-}
-
-.scout-launcher-btn:hover {
-  background: #f8fafc;
-}
-
-.scout-launcher-icon {
-  width: 18px;
-  height: 18px;
-  border-radius: 6px;
-  background: radial-gradient(circle at 30% 30%, #60a5fa, #2563eb);
-}
-
-.scout-launcher-text {
-  font-weight: 700;
-  font-size: 14px;
-}
-
-/* HARD isolation so Google styles cannot bleed in */
-.scout-root {
-  all: initial;
-  position: fixed;
-  top: 104px;
-  right: 18px;
-  z-index: 2147483647;
-  width: 330px;
-  max-height: 520px;
-}
-
-/* After all:initial, re-enable typography */
-.scout-root,
-.scout-root * {
-  box-sizing: border-box;
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial,
-    "Apple Color Emoji", "Segoe UI Emoji";
-}
-
-.scout-panel-shell {
-  display: block;
-}
-
-/* =============== */
-/* Panel layout */
-/* =============== */
 
 .scout-panel {
-  width: 330px;
-  max-height: 520px;
-  display: flex;
-  flex-direction: column;
-  border-radius: 18px;
-  background: #ffffff;
-  border: 1px solid rgba(15, 23, 42, 0.10);
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.18);
-  overflow: hidden;
+  background: #ffffff !important;
+  border: 1px solid rgba(226, 232, 240, 0.8) !important;
+  border-radius: 24px !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1), 0 10px 15px rgba(0, 0, 0, 0.05) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  max-height: 600px !important;
+  overflow: hidden !important;
 }
 
+/* TIGHTER HEADER: Fixed negative space */
 .scout-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 14px;
-  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
-  background: #ffffff;
+  padding: 14px 20px !important; /* Reduced from 20px to fix white space */
+  background: #ffffff !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
 }
 
 .scout-header-left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
 }
 
 .scout-logo {
-  width: 22px;
-  height: 22px;
-  border-radius: 9999px;
-  background: radial-gradient(circle at 30% 30%, #60a5fa, #2563eb);
+  width: 28px !important;
+  height: 28px !important;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+  border-radius: 8px !important;
 }
 
 .scout-h-title {
-  font-size: 24px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  color: #0f172a;
+  font-size: 20px !important; /* Slightly smaller for better fit */
+  font-weight: 800 !important;
+  color: #0f172a !important;
+  margin: 0 !important;
+  letter-spacing: -0.03em !important;
 }
 
+/* BETTER CLOSE BUTTON: No more gray square */
 .scout-close {
-  border: 0;
-  background: transparent;
-  cursor: pointer;
-  font-size: 22px;
-  line-height: 1;
-  color: rgba(15, 23, 42, 0.55);
-  padding: 4px 8px;
-  border-radius: 10px;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 50% !important;
+  width: 32px !important;
+  height: 32px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  color: #94a3b8 !important;
+  font-size: 20px !important;
+  transition: all 0.2s ease !important;
 }
 
 .scout-close:hover {
-  background: rgba(15, 23, 42, 0.06);
-  color: rgba(15, 23, 42, 0.75);
+  background: #f1f5f9 !important;
+  color: #1e293b !important;
 }
 
 .scout-body {
-  flex: 1;
-  overflow: auto;
-  padding: 12px 12px 14px;
+  padding: 16px !important;
+  overflow-y: auto !important;
+  background: #fcfdfe !important;
 }
 
-.scout-status {
-  font-size: 13px;
-  color: rgba(15, 23, 42, 0.70);
-  background: #f1f5f9;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  padding: 10px 12px;
-  border-radius: 14px;
-  margin-bottom: 10px;
-}
-
-.scout-error {
-  font-size: 13px;
-  color: #991b1b;
-  background: #fef2f2;
-  border: 1px solid rgba(153, 27, 27, 0.20);
-  padding: 10px 12px;
-  border-radius: 14px;
-  margin-bottom: 10px;
-}
-
+/* CARDS */
 .scout-card {
-  border-radius: 16px;
-  border: 1px solid rgba(15, 23, 42, 0.10);
-  background: #ffffff;
-  padding: 12px;
-  margin-bottom: 12px;
+  border-radius: 20px !important;
+  padding: 18px !important;
+  margin-bottom: 16px !important;
+  border: 1px solid transparent !important;
+  transition: all 0.2s ease !important;
 }
 
-.scout-card-top {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 10px;
-}
+.scout-sponsored { background: linear-gradient(180deg, #fffbeb 0%, #ffffff 100%) !important; border: 1px solid #fef3c7 !important; }
+.scout-free { background: linear-gradient(180deg, #f0fdf4 0%, #ffffff 100%) !important; border: 1px solid #dcfce7 !important; }
+.scout-trial { background: linear-gradient(180deg, #eff6ff 0%, #ffffff 100%) !important; border: 1px solid #dbeafe !important; }
 
-.scout-title-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
+.scout-title { font-size: 17px !important; font-weight: 800 !important; margin-bottom: 4px !important; }
 
-.scout-title {
-  font-size: 18px;
-  font-weight: 800;
-  color: #0f172a;
-}
-
-.scout-badges {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
+.scout-badge-row { display: flex !important; gap: 8px !important; align-items: center !important; margin-bottom: 10px !important; }
 
 .scout-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 10px;
-  border-radius: 9999px;
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.02em;
-  border: 1px solid rgba(15, 23, 42, 0.12);
-  color: rgba(15, 23, 42, 0.75);
-  background: #ffffff;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  padding: 3px 8px !important;
+  border-radius: 6px !important;
+  text-transform: uppercase !important;
 }
 
-.scout-badge.sponsored {
-  background: rgba(245, 158, 11, 0.15);
-  border-color: rgba(245, 158, 11, 0.35);
-  color: #92400e;
-}
-
-.scout-badge.free {
-  background: rgba(34, 197, 94, 0.12);
-  border-color: rgba(34, 197, 94, 0.30);
-  color: #166534;
-}
-
-.scout-badge.trial {
-  background: rgba(59, 130, 246, 0.12);
-  border-color: rgba(59, 130, 246, 0.30);
-  color: #1d4ed8;
-}
-
-.scout-rating {
-  font-size: 12px;
-  font-weight: 700;
-  color: rgba(15, 23, 42, 0.70);
-}
-
-.scout-tagline {
-  margin-top: 6px;
-  font-size: 13px;
-  color: rgba(15, 23, 42, 0.68);
-  font-style: italic;
-}
+.scout-badge.sponsored { background: #f59e0b !important; color: white !important; }
+.scout-badge.free { background: #10b981 !important; color: white !important; }
+.scout-badge.trial { background: #3b82f6 !important; color: white !important; }
 
 .scout-toggle {
-  border: 0;
-  background: transparent;
-  color: #2563eb;
-  font-weight: 700;
-  cursor: pointer;
-  padding: 4px 6px;
-  border-radius: 10px;
-  flex-shrink: 0;
+  background: rgba(15, 23, 42, 0.05) !important;
+  border: none !important;
+  border-radius: 8px !important;
+  padding: 6px 12px !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  color: #475569 !important;
+  cursor: pointer !important;
+  margin-top: 8px !important;
 }
 
-.scout-toggle:hover {
-  background: rgba(37, 99, 235, 0.08);
-}
-
-.scout-mini-preview {
-  margin-top: 10px;
-  font-size: 13px;
-  color: rgba(15, 23, 42, 0.80);
-  background: #f8fafc;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  padding: 10px 12px;
-  border-radius: 14px;
-}
-
-.scout-card-body {
-  margin-top: 12px;
-}
+.scout-toggle:hover { background: rgba(15, 23, 42, 0.1) !important; }
 
 .scout-cta {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 10px 14px;
-  border-radius: 9999px;
-  background: #f59e0b;
-  color: #111827;
-  font-weight: 800;
-  text-decoration: none;
-  border: 1px solid rgba(245, 158, 11, 0.35);
-}
-
-.scout-cta:hover {
-  filter: brightness(0.98);
-}
-
-.scout-ext {
-  font-size: 12px;
-  opacity: 0.9;
+  display: block !important;
+  background: #0f172a !important;
+  color: white !important;
+  text-align: center !important;
+  padding: 12px !important;
+  border-radius: 12px !important;
+  text-decoration: none !important;
+  font-weight: 700 !important;
+  margin-top: 12px !important;
 }
 
 .scout-says {
-  margin-top: 12px;
-  padding: 12px;
-  border-radius: 16px;
-  border: 1px solid rgba(15, 23, 42, 0.10);
-  background: #f8fafc;
+  background: #ffffff !important;
+  border: 1px solid #f1f5f9 !important;
+  border-radius: 14px !important;
+  padding: 12px !important;
+  margin-top: 14px !important;
 }
 
-.scout-says-title {
-  font-weight: 900;
-  color: #2563eb;
-  margin-bottom: 6px;
-}
-
-.scout-says-text {
-  color: rgba(15, 23, 42, 0.80);
-  font-style: italic;
-  line-height: 1.35;
-}
-
-/* Clamp helpers */
-.line-clamp-1 {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 1;
-  line-clamp: 1;
-  overflow: hidden;
-}
-
-.line-clamp-2 {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  overflow: hidden;
-}
+.scout-says-title { font-size: 11px !important; font-weight: 800 !important; color: #3b82f6 !important; text-transform: uppercase; margin-bottom: 4px; }
+.scout-says-text { font-size: 13px !important; font-style: italic !important; color: #334155 !important; line-height: 1.5 !important; }

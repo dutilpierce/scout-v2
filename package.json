@@ -1,6 +1,9 @@
 {
   "name": "scout-v2",
+  "displayName": "Scout v2",
   "version": "0.1.0",
+  "description": "AI-powered tool recommendations for Google Search",
+  "author": "Your Name",
   "private": true,
   "type": "module",
   "scripts": {
@@ -17,13 +20,12 @@
     "@types/chrome": "^0.1.32",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
-    "autoprefixer": "^10.4.19",
-    "eslint": "^8.57.0",
     "plasmo": "^0.90.5",
-    "postcss": "^8.4.38",
-    "tailwindcss": "^3.4.17"
+    "typescript": "5.4.5"
   },
-  "overrides": {
-    "jiti": "1.21.0"
+  "manifest": {
+    "host_permissions": [
+      "https://www.google.com/*"
+    ]
   }
 }

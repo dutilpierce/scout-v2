@@ -1,118 +1,47 @@
 // src/content.tsx
-
-import React, { useEffect, useMemo, useState } from "react"
+import React, { useEffect, useState } from "react"
 import { ScoutPanel } from "~components/ScoutPanel"
-import type { Tool } from "~data/tools"
 
-function getQueryFromPage(): string {
-  // Google query param (q=...) first
-  try {
-    const url = new URL(window.location.href)
-    const q = url.searchParams.get("q")
-    if (q && q.trim()) return q.trim()
-  } catch {
-    // ignore
-  }
+import type { PlasmoGetStyle } from "plasmo"
+import styleText from "data-text:~style.css"
 
-  // fallback: selected text
-  const sel = window.getSelection?.()?.toString?.()?.trim()
-  if (sel) return sel
-
-  return ""
-}
-
-type GetRecsResponse = {
-  sponsoredTool: Tool | null
-  freeTool: Tool | null
-  trialTool: Tool | null
+export const getStyle: PlasmoGetStyle = () => {
+  const style = document.createElement("style")
+  // Resetting all styles inside the bubble to prevent Google from breaking it
+  style.textContent = `
+    :host { all: initial !important; display: block !important; }
+    ${styleText}
+  `
+  return style
 }
 
 export default function Content() {
-  const [open, setOpen] = useState(false)
-  const [query, setQuery] = useState<string>("")
+  const [tools, setTools] = useState({ sponsored: null, free: null, trial: null })
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [visible, setVisible] = useState(true)
 
-  const [sponsoredTool, setSponsoredTool] = useState<Tool | null>(null)
-  const [freeTool, setFreeTool] = useState<Tool | null>(null)
-  const [trialTool, setTrialTool] = useState<Tool | null>(null)
-
-  // keep query in sync with navigation
   useEffect(() => {
-    const update = () => setQuery(getQueryFromPage())
-    update()
-
-    window.addEventListener("popstate", update)
-    window.addEventListener("hashchange", update)
-    return () => {
-      window.removeEventListener("popstate", update)
-      window.removeEventListener("hashchange", update)
+    const fetchTools = async () => {
+      setLoading(true)
+      const q = new URLSearchParams(window.location.search).get("q") || ""
+      const res = await chrome.runtime.sendMessage({ type: "SCOUT_GET_RECS", query: q })
+      setTools({ sponsored: res?.sponsoredTool, free: res?.freeTool, trial: res?.trialTool })
+      setLoading(false)
     }
+    fetchTools()
   }, [])
 
-  // load recs when opening or query changes while open
-  useEffect(() => {
-    let cancelled = false
-    if (!open) return
+  if (!visible) return null
 
-    ;(async () => {
-      setLoading(true)
-      setError(null)
-
-      try {
-        const res = (await chrome.runtime.sendMessage({
-          type: "SCOUT_GET_RECS",
-          query
-        })) as GetRecsResponse
-
-        if (cancelled) return
-
-        setSponsoredTool(res?.sponsoredTool ?? null)
-        setFreeTool(res?.freeTool ?? null)
-        setTrialTool(res?.trialTool ?? null)
-      } catch (e: any) {
-        if (cancelled) return
-        setError(e?.message ? String(e.message) : "Failed to load recommendations.")
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
-    })()
-
-    return () => {
-      cancelled = true
-    }
-  }, [open, query])
-
-  const ui = useMemo(() => {
-    return (
-      <div className="scout-launcher">
-        <button
-          className="scout-launcher-btn"
-          type="button"
-          aria-label="Toggle Scout"
-          onClick={() => setOpen((v) => !v)}>
-          <span className="scout-launcher-icon" aria-hidden="true" />
-          <span className="scout-launcher-text">Scout</span>
-        </button>
-
-        {open ? (
-          <div className="scout-root">
-            <div className="scout-panel-shell">
-              <ScoutPanel
-                query={query}
-                sponsoredTool={sponsoredTool}
-                freeTool={freeTool}
-                trialTool={trialTool}
-                loading={loading}
-                error={error}
-                onClose={() => setOpen(false)}
-              />
-            </div>
-          </div>
-        ) : null}
-      </div>
-    )
-  }, [open, query, sponsoredTool, freeTool, trialTool, loading, error])
-
-  return ui
+  return (
+    <div className="scout-outer-wrapper">
+      <ScoutPanel
+        sponsoredTool={tools.sponsored}
+        freeTool={tools.free}
+        trialTool={tools.trial}
+        loading={loading}
+        onClose={() => setVisible(false)}
+      />
+    </div>
+  )
 }

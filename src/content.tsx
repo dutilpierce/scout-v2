@@ -1,13 +1,15 @@
 // src/content.tsx
 import React, { useEffect, useState } from "react"
 import { ScoutPanel } from "~components/ScoutPanel"
+import type { Tool } from "~data/tools"
 
+// FIX: Inject CSS into the Shadow DOM bubble to prevent Google's style bleed
 import type { PlasmoGetStyle } from "plasmo"
 import styleText from "data-text:~style.css"
 
 export const getStyle: PlasmoGetStyle = () => {
   const style = document.createElement("style")
-  // Resetting all styles inside the bubble to prevent Google from breaking it
+  // 'all: initial' acts as a hard reset for all Google-inherited styles
   style.textContent = `
     :host { all: initial !important; display: block !important; }
     ${styleText}
@@ -24,9 +26,12 @@ export default function Content() {
     const fetchTools = async () => {
       setLoading(true)
       const q = new URLSearchParams(window.location.search).get("q") || ""
-      const res = await chrome.runtime.sendMessage({ type: "SCOUT_GET_RECS", query: q })
-      setTools({ sponsored: res?.sponsoredTool, free: res?.freeTool, trial: res?.trialTool })
-      setLoading(false)
+      try {
+        const res = await chrome.runtime.sendMessage({ type: "SCOUT_GET_RECS", query: q })
+        setTools({ sponsored: res?.sponsoredTool, free: res?.freeTool, trial: res?.trialTool })
+      } finally {
+        setLoading(false)
+      }
     }
     fetchTools()
   }, [])

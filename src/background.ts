@@ -1,122 +1,83 @@
-import { tools, type Tool } from "~data/tools"
+// src/background.ts
 
-type GetRecsMsg = {
+import type { Tool, ToolKind } from "./data/tools"
+import { TOOLS } from "./data/tools"
+
+type GetRecsRequest = {
   type: "SCOUT_GET_RECS"
   query: string
 }
 
-type RecsResponse =
-  | {
-      ok: true
-      query: string
-      sponsoredOrTrial: Tool
-      freeOrFreemium: Tool
-      aiBlurb: string
-    }
-  | { ok: false; error: string }
-
-// ------------------------------
-// Gemini Nano-ready integration
-// ------------------------------
-// This code is structured so that when `window.ai.languageModel` becomes available
-// in Chrome, you can swap `generateBlurb` to call the on-device model.
-// IMPORTANT: background service workers do not have a DOM, so we keep this pure.
-async function generateBlurb(query: string, freeTool: Tool, paidTool: Tool): Promise<string> {
-  try {
-    // If you later move this to an offscreen document, you can call window.ai there.
-    // For now we return a deterministic blurb.
-    return `Based on your search for "${query}", Scout recommends a free option (${freeTool.name}) and a trial/sponsored option (${paidTool.name}) tailored to your intent.`
-  } catch {
-    return `Scout recommendations for: ${query}`
-  }
+type GetRecsResponse = {
+  sponsoredTool: Tool | null
+  freeTool: Tool | null
+  trialTool: Tool | null
 }
 
-function normalize(text: string): string {
-  return text.toLowerCase().replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim()
-}
-
-function scoreTool(query: string, tool: Tool): number {
-  const q = normalize(query)
+function scoreTool(tool: Tool, query: string): number {
+  const q = (query || "").toLowerCase().trim()
   if (!q) return 0
 
-  const tokens = new Set(q.split(" ").filter(Boolean))
+  const hay = [
+    tool.name,
+    tool.tagline,
+    ...(tool.keywords ?? []),
+    ...(tool.features ?? [])
+  ]
+    .join(" ")
+    .toLowerCase()
+
+  const tokens = q.split(/\s+/).filter(Boolean)
+
   let score = 0
-
-  for (const cat of tool.categories) {
-    if (tokens.has(normalize(cat))) score += 3
+  for (const t of tokens) {
+    if (t.length <= 2) continue
+    if (hay.includes(t)) score += 2
   }
 
-  for (const kw of tool.keywords) {
-    const nkw = normalize(kw)
-    if (!nkw) continue
-
-    // exact token
-    if (tokens.has(nkw)) score += 4
-
-    // phrase containment
-    if (q.includes(nkw)) score += 2
+  // mild rating bias if present
+  if (typeof tool.rating === "number") {
+    score += Math.max(0, Math.min(1.5, (tool.rating - 4.5) * 1.0))
   }
-
-  // gentle tie-breaker for higher ratings
-  score += Math.round(tool.rating * 10) / 100
 
   return score
 }
 
-function pickBest(query: string, pool: Tool[]): Tool {
-  let best: Tool | null = null
-  let bestScore = -Infinity
+function pickBest(kind: ToolKind, query: string, excludeIds = new Set<string>()): Tool | null {
+  const pool = TOOLS.filter((t) => t.kind === kind && !excludeIds.has(t.id))
+  if (!pool.length) return null
 
-  for (const t of pool) {
-    const s = scoreTool(query, t)
-    if (s > bestScore) {
-      bestScore = s
-      best = t
-    }
-  }
+  const ranked = pool
+    .map((t) => ({ t, s: scoreTool(t, query) }))
+    .sort((a, b) => b.s - a.s)
 
-  // Hard fallback: first tool
-  return best ?? pool[0]
+  return ranked[0]?.t ?? null
 }
 
-function pickDualTools(query: string): { sponsoredOrTrial: Tool; freeOrFreemium: Tool } {
-  const sponsoredOrTrialPool = tools.filter((t) => t.tier === "SPONSORED" || t.tier === "TRIAL")
-  const freeOrFreemiumPool = tools.filter((t) => t.tier === "FREE" || t.tier === "FREEMIUM")
-
-  const sponsoredOrTrial = pickBest(query, sponsoredOrTrialPool)
-  const freeOrFreemium = pickBest(query, freeOrFreemiumPool)
-
-  return { sponsoredOrTrial, freeOrFreemium }
-}
-
-chrome.runtime.onMessage.addListener((msg: unknown, _sender, sendResponse) => {
-  ;(async () => {
-    const m = msg as Partial<GetRecsMsg>
+chrome.runtime.onMessage.addListener(
+  (msg: unknown, _sender: chrome.runtime.MessageSender, sendResponse) => {
+    const m = msg as Partial<GetRecsRequest>
     if (m?.type !== "SCOUT_GET_RECS") return
 
-    const query = (m.query ?? "").toString().trim()
-    if (!query) {
-      const resp: RecsResponse = { ok: false, error: "Missing query" }
-      sendResponse(resp)
-      return
+    const query = String(m.query ?? "").trim()
+    const exclude = new Set<string>()
+
+    const sponsoredTool = pickBest("sponsored", query, exclude)
+    if (sponsoredTool) exclude.add(sponsoredTool.id)
+
+    const freeTool = pickBest("free", query, exclude)
+    if (freeTool) exclude.add(freeTool.id)
+
+    // fallback allowed if trial not separated later
+    const trialTool = pickBest("trial", query, exclude) ?? null
+
+    const res: GetRecsResponse = {
+      sponsoredTool,
+      freeTool,
+      trialTool
     }
 
-    const { sponsoredOrTrial, freeOrFreemium } = pickDualTools(query)
-    const aiBlurb = await generateBlurb(query, freeOrFreemium, sponsoredOrTrial)
-
-    const resp: RecsResponse = {
-      ok: true,
-      query,
-      sponsoredOrTrial,
-      freeOrFreemium,
-      aiBlurb
-    }
-    sendResponse(resp)
-  })().catch((e) => {
-    const resp: RecsResponse = { ok: false, error: e instanceof Error ? e.message : "Unknown error" }
-    sendResponse(resp)
-  })
-
-  // Keep channel open for async response
-  return true
-})
+    sendResponse(res)
+    return true
+  }
+)
